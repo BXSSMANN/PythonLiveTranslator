@@ -6,9 +6,91 @@ import pyperclip
 import time
 import tkinter as tk
 import threading
+import difflib
 
-# Global variable to store the selected language
+languages = {
+    "english": "en",
+    "serbian": "sr",
+    "french": "fr",
+    "polish": "pl",
+    "spanish": "es",
+    "german": "de",
+    "italian": "it",
+    "portuguese": "pt",
+    "russian": "ru",
+    "chinese": "zh",
+    "japanese": "ja",
+    "korean": "ko",
+    "arabic": "ar",
+    "dutch": "nl",
+    "greek": "el",
+    "hebrew": "he",
+    "hindi": "hi",
+    "hungarian": "hu",
+    "swedish": "sv",
+    "turkish": "tr",
+    "vietnamese": "vi",
+    "thai": "th",
+    "czech": "cs",
+    "danish": "da",
+    "finnish": "fi",
+    "norwegian": "no",
+    "romanian": "ro",
+    "slovak": "sk",
+    "ukrainian": "uk",
+    "bulgarian": "bg",
+    "croatian": "hr",
+    "indonesian": "id",
+    "malay": "ms",
+    "filipino": "tl",
+    "persian": "fa",
+    "swahili": "sw",
+    "tamil": "ta",
+    "telugu": "te",
+    "urdu": "ur",
+    "bengali": "bn",
+    "punjabi": "pa",
+    "marathi": "mr",
+    "gujarati": "gu",
+    "kannada": "kn",
+    "malayalam": "ml",
+    "sinhala": "si",
+    "slovenian": "sl",
+    "estonian": "et",
+    "latvian": "lv",
+    "lithuanian": "lt",
+    "icelandic": "is",
+    "irish": "ga",
+    "welsh": "cy",
+    "scots_gaelic": "gd",
+    "luxembourgish": "lb",
+    "maltese": "mt",
+    "macedonian": "mk",
+    "albanian": "sq",
+    "armenian": "hy",
+    "azerbaijani": "az",
+    "basque": "eu",
+    "belarusian": "be",
+    "bosnian": "bs",
+    "georgian": "ka",
+    "kazakh": "kk",
+    "kyrgyz": "ky",
+    "mongolian": "mn",
+    "tajik": "tg",
+    "turkmen": "tk",
+    "uzbek": "uz",
+    "yiddish": "yi",
+    "zulu": "zu"
+    # Add more languages as needed
+}
+
+# Global variables to store settings
 selected_language = "sr"
+translate_cyrillic = True
+time_to_sleep = 0.01
+kybind1 = "down"
+kybind2 = "up"
+kybind3 = "esc"
 
 # Function to update the GUI with messages
 def update_gui(message, clear=False):
@@ -47,7 +129,7 @@ def translate_text(user_input, to_lang):
         update_gui(f"Translation: {translation}", clear=False)
         print(f"Translation: {translation}")
         
-        if to_lang == "sr":
+        if to_lang == "sr" and translate_cyrillic:
             try:
                 latin_translation = translit(translation, 'sr', reversed=True)  # Convert to Latin
                 update_gui(f"Latin Transliteration: {latin_translation}", clear=False)
@@ -80,9 +162,9 @@ def replace_text(text):
     
     # Simulate a select all and cut
     pyautogui.hotkey('ctrl', 'a')
-    time.sleep(0.01)
+    time.sleep(time_to_sleep)
     pyautogui.hotkey('ctrl', 'x')
-    time.sleep(0.01)
+    time.sleep(time_to_sleep)
     
     # Paste the translated text
     pyperclip.copy(text)  # Copy the translated text
@@ -96,9 +178,9 @@ def on_down_arrow():
     
     # Simulate a copy action
     pyautogui.hotkey('ctrl', 'a')  # Select all text
-    time.sleep(0.01)  # Short delay
+    time.sleep(time_to_sleep)  # Short delay
     pyautogui.hotkey('ctrl', 'c')  # Copy selected text
-    time.sleep(0.001)  # Short delay
+    time.sleep(time_to_sleep)  # Short delay
 
     # Store the copied text
     harvested_text = pyperclip.paste()  # Get text from clipboard
@@ -121,7 +203,7 @@ def on_up_arrow():
     
     # Simulate a copy action
     pyautogui.hotkey('ctrl', 'c')  # Copy selected text
-    time.sleep(0.001)  # Short delay
+    time.sleep(time_to_sleep)  # Short delay
 
     # Store the copied text
     harvested_text = pyperclip.paste()  # Get text from clipboard
@@ -137,32 +219,76 @@ def on_up_arrow():
 
 def select_language():
     global selected_language
-    print("Select the target language:")
-    print("1. French")
-    print("2. Serbian")
-    print("3. Polish")
-    choice = input("Enter the number of your choice: ")
-    
-    if choice == "1":
-        selected_language = "fr"
-    elif choice == "2":
-        selected_language = "sr"
-    elif choice == "3":
-        selected_language = "pl"
-    else:
-        print("Invalid choice, defaulting to Serbian.")
-        selected_language = "sr"
+    while True:
+        usr_input = input("Select the target language: ").lower()
+        close_matches = difflib.get_close_matches(usr_input, languages.keys())
+        
+        if close_matches:
+            confirm = input(f"Is '{close_matches[0]}' the correct language? (y/n): ").lower()
+            if confirm == "y":
+                selected_language = languages[close_matches[0]]
+                print(f"Language selected: {selected_language}")
+                break
+        print("Invalid choice, try again.")
+
+def main_menu():
+    while True:
+        print("1. start")
+        print("2. settings")
+        print("3. Exit")
+        print("Enter the number of your choice: ")
+        choice = input("> ")
+        if choice == "1":
+            break
+        elif choice == "2":
+            settings_menu()
+        elif choice == "3":
+            exit()
+
+def settings_menu():
+    global translate_cyrillic, time_to_sleep, kybind1, kybind2, kybind3
+
+    while True:
+        print("1. Translate cyrillic to latin (for serbian language) : ", translate_cyrillic)
+        print("2. Time to sleep :", time_to_sleep)
+        print("3. Keybinds")
+        print("       Translate english to selected language : ", kybind1)
+        print("       Translate selected language to english : ", kybind2)
+        print("       Exit : ", kybind3)
+        print("4. Back")
+        choice = input("> ")
+
+        if choice == "1":
+            translate_cyrillic = not translate_cyrillic
+        elif choice == "2":
+            time_to_sleep = float(input("Enter the time to sleep: "))
+        elif choice == "3":
+            kybind1 = input("Enter the new keybind for translate english to selected language: ")
+            kybind2 = input("Enter the new keybind for translate selected language to english: ")
+            kybind3 = input("Enter the new keybind for exit: ")
+        elif choice == "4":
+            break
+        else:
+            close_matches = difflib.get_close_matches(choice, ["1", "2", "3", "4"])
+            if close_matches:
+                print(f"Did you mean: {close_matches[0]}? (y/n)")
+                confirm = input("> ")
+                if confirm.lower() == "y":
+                    choice = close_matches[0]
+                    continue
+            print("Invalid choice, try again")
 
 def main():
+    main_menu()
     select_language()  # Add language selection
     update_gui("Press 'down arrow' to translate text to selected language. Press 'up arrow' to translate text to English. Press 'esc' to exit.", clear=True)
     print("Press 'down arrow' to translate text to selected language. Press 'up arrow' to translate text to English. Press 'esc' to exit.")
     
     def keyboard_listener():
         # Set up the keyboard hook for the down arrow key
-        keyboard.add_hotkey('down', on_down_arrow)  # Bind key to function
-        keyboard.add_hotkey('up', on_up_arrow)  # Bind key to function
-        keyboard.wait('esc')  # Wait for exit key
+        keyboard.add_hotkey(kybind1, on_down_arrow)  # Bind key to function
+        keyboard.add_hotkey(kybind2, on_up_arrow)  # Bind key to function
+        keyboard.wait(kybind3)  # Wait for exit key
     
     # Run the keyboard listener in a separate thread to avoid GUI freezing
     listener_thread = threading.Thread(target=keyboard_listener)
